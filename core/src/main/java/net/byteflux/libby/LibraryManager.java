@@ -511,7 +511,7 @@ public abstract class LibraryManager {
 
     		//init resolve report
     		ResolveReport report = ivy.resolve(ivyfile.toURI().toURL(), resolveOptions);
-    		System.out.println("Dependencies:");
+    		System.out.println("Dependencies for "+dep[0]+":"+dep[1]+":"+dep[2]+":");
     		report.getDependencies().forEach(dependency->{
     			ModuleRevisionId tmp = dependency.getResolvedId();
     			System.out.println(tmp.getOrganisation()+":"+tmp.getName()+":"+tmp.getRevision());
