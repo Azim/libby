@@ -6,6 +6,10 @@ server platforms.
 Libraries can be downloaded from Maven repositories (or direct URLs) into a plugin's data
 folder, relocated and then loaded into the plugin's classpath at runtime.
 
+### Azim's fork
+
+I will do my best to add some sort of support for transitive dependencies (haha watch me try and fail miserably)
+
 ### Why use runtime dependency management?
 
 Due to file size constraints on plugin hosting services like SpigotMC, some plugins with
@@ -17,6 +21,12 @@ plugin jar.
 
 A smaller plugin jar also means shorter download times and less network strain for authors
 who self-host their plugins on servers with limited bandwidth.
+
+### How to use it?
+
+Original library really did lack the instructions huh?
+Long story short - you shade in this library instead of shading other libraries.
+Use maven shade plugin for that.
 
 ## Credits
 

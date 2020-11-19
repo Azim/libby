@@ -7,6 +7,7 @@ import net.byteflux.libby.relocation.Relocation;
 import net.byteflux.libby.relocation.RelocationHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,12 +22,30 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.ivy.Ivy;
+import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.ivy.core.report.ResolveReport;
+import org.apache.ivy.core.resolve.ResolveEngine;
+import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.core.settings.IvySettings;
+import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
+import org.apache.ivy.plugins.resolver.ChainResolver;
+import org.apache.ivy.plugins.resolver.DependencyResolver;
+import org.apache.ivy.plugins.resolver.IBiblioResolver;
+import org.apache.ivy.plugins.resolver.URLResolver;
 
 import static java.util.Objects.requireNonNull;
 
@@ -388,5 +407,128 @@ public abstract class LibraryManager {
         }
 
         addToClasspath(file);
+    }
+
+    private static File resolveArtifact(String groupId, String artifactId, String version) throws Exception {
+    	//creates clear ivy settings
+    	IvySettings ivySettings = new IvySettings();
+    	//adding maven repo resolver
+    	IBiblioResolver resolver = new IBiblioResolver();
+    	resolver.setM2compatible(true);
+    	resolver.setName("central");
+
+    	ivySettings.addResolver(resolver);
+    	//set to the default resolver
+    	ivySettings.setDefaultResolver(resolver.getName());
+    	//creates an Ivy instance with settings
+    	Ivy ivy = Ivy.newInstance(ivySettings);
+
+    	File ivyfile = File.createTempFile("ivy", ".xml");
+    	ivyfile.deleteOnExit();
+
+    	String[] dep = null;
+    	dep = new String[]{groupId, artifactId, version};
+
+    	DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(
+    					ModuleRevisionId.newInstance(dep[0], dep[1] + "-caller", "working"));
+
+    	DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(
+    			md,
+    			ModuleRevisionId.newInstance(dep[0], dep[1], dep[2]),
+    			false, false, true);
+    	
+    	md.addDependency(dd);
+
+    	//creates an ivy configuration file
+    	XmlModuleDescriptorWriter.write(md, ivyfile);
+
+    	String[] confs = new String[]{"default"};
+    	ResolveOptions resolveOptions = new ResolveOptions().setConfs(confs).setTransitive(true);
+
+    	//init resolve report
+    	ResolveReport report = ivy.resolve(ivyfile.toURI().toURL(), resolveOptions);
+    	System.out.println("Artifacts:");
+    	report.getArtifacts().forEach(artifact->{
+    		ModuleRevisionId tmp = artifact.getId().getModuleRevisionId();
+    		System.out.println(tmp.getOrganisation()+":"+tmp.getModuleId()+":"+tmp.getRevision());
+    	});
+    	System.out.println("Dependencies:");
+    	report.getDependencies().forEach(dependency->{
+    		ModuleRevisionId tmp = dependency.getResolvedId();
+    		System.out.println(tmp.getOrganisation()+":"+tmp.getModuleId()+":"+tmp.getRevision());
+    	});
+    	
+
+    	//so you can get the jar library
+    	
+    	File jarArtifactFile = report.getAllArtifactsReports()[0].getLocalFile();
+
+    	return jarArtifactFile;
+    }
+    
+
+    public List<Library> resolveDependencies(Library...libraries) throws Exception {
+    	//creates clear ivy settings
+    	IvySettings ivySettings = new IvySettings();
+    	//adding maven repo resolver
+    	ChainResolver chain = new ChainResolver();
+    	chain.setName("chain");
+    	for(String repository:getRepositories()) {
+        	IBiblioResolver resolver = new IBiblioResolver();
+        	resolver.setM2compatible(true);
+        	resolver.setRoot(repository);
+        	chain.add(resolver);
+    	}
+    	ivySettings.addResolver(chain);
+    	//set to the default resolver
+    	ivySettings.setDefaultResolver(chain.getName());
+    	//creates an Ivy instance with settings
+    	Ivy ivy = Ivy.newInstance(ivySettings);
+
+    	File ivyfile = File.createTempFile("ivy", ".xml");
+    	ivyfile.deleteOnExit();
+
+    	
+    	ArrayList<Library> result = new ArrayList<>();
+    	for(Library library:libraries) {
+    		String[] dep = new String[]{library.getGroupId(), library.getArtifactId(), library.getVersion()};
+
+    		DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(
+    				ModuleRevisionId.newInstance(dep[0], dep[1] + "-caller", "working"));
+
+    		DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(
+    				md,
+    				ModuleRevisionId.newInstance(dep[0], dep[1], dep[2]),
+    				false, false, true);
+
+    		md.addDependency(dd);
+
+    		//creates an ivy configuration file
+    		XmlModuleDescriptorWriter.write(md, ivyfile);
+
+    		String[] confs = new String[]{"default"};
+    		ResolveOptions resolveOptions = new ResolveOptions().setConfs(confs).setTransitive(true);
+
+    		//init resolve report
+    		ResolveReport report = ivy.resolve(ivyfile.toURI().toURL(), resolveOptions);
+    		System.out.println("Dependencies:");
+    		report.getDependencies().forEach(dependency->{
+    			ModuleRevisionId tmp = dependency.getResolvedId();
+    			System.out.println(tmp.getOrganisation()+":"+tmp.getName()+":"+tmp.getRevision());
+    		});
+    		result.addAll(report.getDependencies().stream().map(d->d.getResolvedId()).map(
+    			d->Library.builder()
+        			.groupId(d.getOrganisation())
+        			.artifactId(d.getName())
+        			.version(d.getRevision())
+        			.build()
+    			).collect(Collectors.toList()));
+    	}
+    	return result;
+    }
+
+    public static void main(String[]args) throws Exception {
+    	resolveArtifact("org.javacord", "javacord", "3.1.1");
+    	//resolveDependencies(null);
     }
 }
