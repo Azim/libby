@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
@@ -35,17 +36,18 @@ import java.util.stream.Collectors;
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.apache.ivy.core.report.ResolveReport;
-import org.apache.ivy.core.resolve.ResolveEngine;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorWriter;
 import org.apache.ivy.plugins.resolver.ChainResolver;
-import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
-import org.apache.ivy.plugins.resolver.URLResolver;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import static java.util.Objects.requireNonNull;
 
@@ -408,66 +410,18 @@ public abstract class LibraryManager {
 
         addToClasspath(file);
     }
-
-    private static File resolveArtifact(String groupId, String artifactId, String version) throws Exception {
-    	//creates clear ivy settings
-    	IvySettings ivySettings = new IvySettings();
-    	//adding maven repo resolver
-    	IBiblioResolver resolver = new IBiblioResolver();
-    	resolver.setM2compatible(true);
-    	resolver.setName("central");
-
-    	ivySettings.addResolver(resolver);
-    	//set to the default resolver
-    	ivySettings.setDefaultResolver(resolver.getName());
-    	//creates an Ivy instance with settings
-    	Ivy ivy = Ivy.newInstance(ivySettings);
-
-    	File ivyfile = File.createTempFile("ivy", ".xml");
-    	ivyfile.deleteOnExit();
-
-    	String[] dep = null;
-    	dep = new String[]{groupId, artifactId, version};
-
-    	DefaultModuleDescriptor md = DefaultModuleDescriptor.newDefaultInstance(
-    					ModuleRevisionId.newInstance(dep[0], dep[1] + "-caller", "working"));
-
-    	DefaultDependencyDescriptor dd = new DefaultDependencyDescriptor(
-    			md,
-    			ModuleRevisionId.newInstance(dep[0], dep[1], dep[2]),
-    			false, false, true);
-    	
-    	md.addDependency(dd);
-
-    	//creates an ivy configuration file
-    	XmlModuleDescriptorWriter.write(md, ivyfile);
-
-    	String[] confs = new String[]{"default"};
-    	ResolveOptions resolveOptions = new ResolveOptions().setConfs(confs).setTransitive(true);
-
-    	//init resolve report
-    	ResolveReport report = ivy.resolve(ivyfile.toURI().toURL(), resolveOptions);
-    	System.out.println("Artifacts:");
-    	report.getArtifacts().forEach(artifact->{
-    		ModuleRevisionId tmp = artifact.getId().getModuleRevisionId();
-    		System.out.println(tmp.getOrganisation()+":"+tmp.getModuleId()+":"+tmp.getRevision());
-    	});
-    	System.out.println("Dependencies:");
-    	report.getDependencies().forEach(dependency->{
-    		ModuleRevisionId tmp = dependency.getResolvedId();
-    		System.out.println(tmp.getOrganisation()+":"+tmp.getModuleId()+":"+tmp.getRevision());
-    	});
-    	
-
-    	//so you can get the jar library
-    	
-    	File jarArtifactFile = report.getAllArtifactsReports()[0].getLocalFile();
-
-    	return jarArtifactFile;
-    }
     
-
-    public List<Library> resolveDependencies(Library...libraries) throws Exception {
+    /**
+     * Resolves dependencies for provided libraries using Ivy
+     * <p>
+     * For some reason doesnt work on my end but does work for some other people, i'll keep it for now in case i figure out how to solve it
+     *
+     * @param libraries libraries to fetch dependenccies for
+     * @return list of dependencies
+     * @throws IOException 
+     * @throws ParseException 
+     */
+    public List<Library> resolveDependencies(Library...libraries) throws IOException, ParseException {
     	//creates clear ivy settings
     	IvySettings ivySettings = new IvySettings();
     	//adding maven repo resolver
@@ -526,9 +480,27 @@ public abstract class LibraryManager {
     	}
     	return result;
     }
-
-    public static void main(String[]args) throws Exception {
-    	resolveArtifact("org.javacord", "javacord", "3.1.1");
-    	//resolveDependencies(null);
+    
+    public List<Library> fromGeneratedResource(InputStream is){
+    	List<Library> result = new ArrayList<>();
+    	try(InputStreamReader reader = new InputStreamReader(is)){
+    		Gson gson = new Gson();
+    		JsonArray array = gson.fromJson(reader, JsonArray.class);
+    		if(array==null||array.isJsonNull())return result;
+    		for(JsonElement element:array) {
+    			JsonObject library = element.getAsJsonObject();
+    			result.add(
+    					Library.builder()
+    					.groupId(library.get("groupId").getAsString())
+    					.artifactId(library.get("artifactId").getAsString())
+    					.version(library.get("version").getAsString())
+    					.url(library.get("url").getAsString())
+    					.build()
+    					);
+    		}
+    	} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	return result;
     }
 }
