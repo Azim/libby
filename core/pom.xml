@@ -12,12 +12,6 @@
 
 	<artifactId>libby-core</artifactId>
 	<dependencies>
-		<!-- https://mvnrepository.com/artifact/org.apache.ivy/ivy -->
-		<dependency>
-			<groupId>org.apache.ivy</groupId>
-			<artifactId>ivy</artifactId>
-			<version>2.5.0</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
