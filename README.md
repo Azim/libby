@@ -133,5 +133,5 @@ Special thanks to:
   and its dependency management system which was the original inspiration for this project
   and another thanks for [jar-relocator](https://github.com/lucko/jar-relocator) which is
   used by Libby to perform jar relocations.
-* [Glare](https://github.com/darbyjack) for convincing me that I should publish this
+* [Glare](https://github.com/darbyjack) for convincing Byteflux that he/she should publish this
   library instead of letting it sit around collecting dust :)
