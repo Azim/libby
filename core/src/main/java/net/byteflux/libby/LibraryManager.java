@@ -409,9 +409,10 @@ public abstract class LibraryManager {
     					.groupId(library.get("groupId").getAsString())
     					.artifactId(library.get("artifactId").getAsString())
     					.version(library.get("version").getAsString());
+    			/*
     			if(library.has("url"))
     				builder.url(library.get("url").getAsString());
-    			
+    			*/
     			result.add(builder.build());
     		}
     	} catch (IOException e) {

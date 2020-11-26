@@ -96,6 +96,23 @@ public class Library {
         this.path = path + ".jar";
         relocatedPath = hasRelocations() ? path + "-relocated.jar" : null;
     }
+    
+    /**
+     * Generates a builder from the library
+     *
+     * @return direct download URLs
+     */
+    public Builder toBuilder() {
+    	Builder builder = new Builder().groupId(groupId).artifactId(artifactId).version(version).classifier(classifier).checksum(checksum);
+    	for(String url:urls) {
+    		builder.url(url);
+    	}
+    	for(Relocation relocation:relocations) {
+    		builder.relocate(relocation);
+    	}
+    	
+    	return builder;
+    }
 
     /**
      * Gets the direct download URLs for this library.
@@ -280,6 +297,16 @@ public class Library {
             urls.add(requireNonNull(url, "url"));
             return this;
         }
+        
+        /**
+         * Clears list of direct download URLs for this library.
+         *
+         * @return this builder
+         */
+        public Builder clearUrls() {
+        	urls.clear();
+        	return this;
+        }
 
         /**
          * Sets the Maven group ID for this library.
@@ -356,7 +383,7 @@ public class Library {
             relocations.add(requireNonNull(relocation, "relocation"));
             return this;
         }
-
+        
         /**
          * Adds a jar relocation to apply to this library.
          *
@@ -366,6 +393,16 @@ public class Library {
          */
         public Builder relocate(String pattern, String relocatedPattern) {
             return relocate(new Relocation(pattern, relocatedPattern));
+        }
+        
+        /**
+         * Clears list of jar relocations to apply to this library.
+         *
+         * @return this builder
+         */
+        public Builder clearRelocations() {
+        	relocations.clear();
+        	return this;
         }
 
         /**
