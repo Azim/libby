@@ -9,7 +9,8 @@ setOf(
     "paper",
     "sponge",
     "standalone",
-    "velocity"
+    "velocity",
+    "hytale"
 ).forEach {
     subProject(it)
 }
