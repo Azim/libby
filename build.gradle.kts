@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
     group = "com.alessiodp.libby"
-    version = "2.0.0-SNAPSHOT"
+    version = "2.0.1-SNAPSHOT"
 
     repositories {
         mavenLocal()
@@ -41,6 +41,7 @@ subprojects {
 
     publishing {
         repositories {
+            /*
             maven {
                 val releaseUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
                 val snapshotUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
@@ -63,6 +64,19 @@ subprojects {
                     password = (project.properties["alessiodpRepoPassword"] ?: "").toString()
                 }
             }
+            */
+
+            maven {
+                val releaseUrl = "https://maven.hytalemodding.dev/releases"
+                val snapshotUrl = "https://maven.hytalemodding.dev/snapshots"
+
+                url = uri(if (version.toString().endsWith("SNAPSHOT")) snapshotUrl else releaseUrl)
+
+                credentials {
+                    username = (project.properties["hytalemoddingRepoUsername"] ?: "").toString()
+                    password = (project.properties["hytalemoddingRepoPassword"] ?: "").toString()
+                }
+            }
         }
 
         publications {
@@ -72,7 +86,7 @@ subprojects {
                 pom {
                     name.set("Libby")
                     description.set("A runtime dependency management library for plugins running in Java-based Minecraft server platforms.")
-                    url.set("https://github.com/AlessioDP/libby")
+                    url.set("https://github.com/Azim/libby")
 
                     licenses {
                         license {
@@ -89,9 +103,9 @@ subprojects {
                     }
 
                     scm {
-                        connection = "scm:git:git://github.com/AlessioDP/libby.git"
-                        developerConnection = "scm:git:git@github.com:AlessioDP/libby.git"
-                        url = "https://github.com/AlessioDP/libby"
+                        connection = "scm:git:git://github.com/Azim/libby.git"
+                        developerConnection = "scm:git:git@github.com:Azim/libby.git"
+                        url = "https://github.com/Azim/libby"
                     }
                 }
             }

@@ -61,6 +61,13 @@ public class HytaleLibraryManager extends LibraryManager {
     }
 
     /**
+     * Adds the HytaleModding repository.
+     */
+    public void addHytaleModding(){
+        this.addRepository("https://maven.hytalemodding.dev/releases");
+    }
+
+    /**
      * Adds a file to the Hytale plugin's classpath.
      *
      * @param file the file to add
