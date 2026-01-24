@@ -1,10 +1,10 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar;
 
 val mainClassPath = "com.alessiodp.libby.StandaloneTestMain"
 
 plugins {
     id("net.kyori.blossom") version "2.0.1"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "9.3.0"
 }
 
 dependencies {
