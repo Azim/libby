@@ -1,3 +1,17 @@
+# Libby (Azim)
+
+<details><summary>Changes in this fork</summary>
+
+### 2.0.1
+* Adds hytale support
+
+### 2.0.0
+* indev version from upstream
+* switched to using gradle
+* some other changes i found no changelog for :)
+
+</details>
+
 # Libby (AlessioDP)
 
 ## [Changes in this fork](./CHANGELOG.md)
@@ -26,32 +40,44 @@ who self-host their plugins on servers with limited bandwidth.
 
 Firstly, add the maven artifact to your `pom.xml`
 ```xml
-<!-- Maven Central Snapshots Repository -->
+<!-- HytaleModding Snapshots Repository -->
 <repository>
-  <id>maven-snapshots</id>
-  <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+  <id>hytalemodding-snapshots</id>
+  <name>HytaleModding</name>
+  <url>https://maven.hytalemodding.dev/snapshots</url>
 </repository>
 
 <dependency>
     <groupId>com.alessiodp.libby</groupId>
     <artifactId>libby-bukkit</artifactId> <!-- Replace bukkit if you're using another platform -->
-    <version>2.0.0-SNAPSHOT</version>
+    <version>2.0.1-SNAPSHOT</version>
 </dependency>
 ```
 
 Remember to **always** relocate Libby to avoid conflicts
 ```xml
+
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-shade-plugin</artifactId>
-    <configuration>
-        <relocations>
-            <relocation>
-                <pattern>com.alessiodp.libby</pattern>
-                <shadedPattern>yourPackage.libs.com.alessiodp.libby</shadedPattern>
-            </relocation>
-        </relocations>
-    </configuration>
+    <version>3.6.1</version>
+    <executions>
+        <execution>
+            <id>shade</id>
+            <phase>package</phase>
+            <goals>
+                <goal>shade</goal>
+            </goals>
+            <configuration>
+                <relocations>
+                    <relocation>
+                        <pattern>com.alessiodp.libby</pattern>
+                        <shadedPattern>yourPackage.libs.com.alessiodp.libby</shadedPattern>
+                    </relocation>
+                </relocations>
+            </configuration>
+        </execution>
+    </executions>
 </plugin>
 ```
 
