@@ -5,5 +5,5 @@ repositories {
 dependencies {
     api(project(":libby-core"))
 
-    compileOnly("com.hypixel.hytale:Server:2026.01.22-6f8bdbdc4")
+    compileOnly("com.hypixel.hytale:Server:+")
 }
