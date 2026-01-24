@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        java-version: [11, 17, 20]
+        java-version: [11, 17, 20, 25]
 
     steps:
       - name: Checkout
@@ -33,7 +33,9 @@ jobs:
       - name: Build with Gradle
         run: |
           if [ "${{ matrix.java-version }}" -lt "17" ]; then
-            ./gradlew build -i -x libby-paper:build
+            ./gradlew build -i -x libby-paper:build,libby-hytale:build
+          elif [ "${{ matrix.java-version }}" -lt "25" ]; then
+            ./gradlew build -i -x libby-hytale:build
           else
             ./gradlew build -i
           fi
