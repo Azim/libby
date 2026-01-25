@@ -1,6 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 .gradle
 **/build/
+**/bin/
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -20,6 +21,14 @@ gradle-app.setting
 out
 gen
 
+# Eclipse project files
+.classpath
+.project
+.settings
+
 # Maven
 log/
 target/
+
+# Ignore secrets
+gradle.properties

@@ -38,7 +38,10 @@ who self-host their plugins on servers with limited bandwidth.
 
 ### Usage
 
+<details><summary>Maven</summary>
+
 Firstly, add the maven artifact to your `pom.xml`
+
 ```xml
 <!-- HytaleModding Snapshots Repository -->
 <repository>
@@ -55,8 +58,8 @@ Firstly, add the maven artifact to your `pom.xml`
 ```
 
 Remember to **always** relocate Libby to avoid conflicts
-```xml
 
+```xml
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-shade-plugin</artifactId>
@@ -72,7 +75,7 @@ Remember to **always** relocate Libby to avoid conflicts
                 <relocations>
                     <relocation>
                         <pattern>com.alessiodp.libby</pattern>
-                        <shadedPattern>yourPackage.libs.com.alessiodp.libby</shadedPattern>
+                        <shadedPattern>YOURPACKAGE.libs.com.alessiodp.libby</shadedPattern>
                     </relocation>
                 </relocations>
             </configuration>
@@ -80,8 +83,44 @@ Remember to **always** relocate Libby to avoid conflicts
     </executions>
 </plugin>
 ```
+---
+</details>
+
+
+<details><summary>Gradle</summary>
+
+Firstly, add the maven artifact to your `build.gradle.kts`
+
+```kts
+repositories {
+    maven {
+        name = "hytalemodding-snapshots"
+        url = uri("https://maven.hytalemodding.dev/snapshots")
+    }
+}
+
+dependencies {
+	//Replace bukkit if you're using another platform
+    implementation("com.alessiodp.libby:libby-bukkit:2.0.1-SNAPSHOT")
+}
+```
+
+Remember to **always** relocate Libby to avoid conflicts
+
+```kts
+tasks.shadowJar {
+    relocate(
+        "com.alessiodp.libby",
+        "YOURPACKAGE.libs.com.alessiodp.libby"
+    )
+}
+```
+---
+</details>
+
 
 Then, create a new LibraryManager instance
+
 ```java
 // Create a library manager for a Bukkit/Spigot plugin
 BukkitLibraryManager bukkitLibraryManager = new BukkitLibraryManager(plugin);
@@ -93,6 +132,7 @@ BungeeLibraryManager bungeeLibraryManager = new BungeeLibraryManager(plugin);
 ```
 
 Create a Library instance with the library builder
+
 ```java
 Library lib = Library.builder()
     .groupId("your{}dependency{}groupId") // "{}" is replaced with ".", useful to avoid unwanted changes made by maven-shade-plugin
@@ -113,6 +153,7 @@ Library lib = Library.builder()
 
 Finally, add Maven Central (or other repositories) to the library manager and download your library. To do this,
 you can use the `LibraryManager#loadLibrary(Library libraryToLoad)` method, which automatically downloads and then loads the provided library.
+
 ```java
 libraryManager.addMavenCentral();
 libraryManager.loadLibrary(lib);
