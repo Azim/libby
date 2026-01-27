@@ -7,6 +7,7 @@ import com.alessiodp.libby.logging.adapters.LogAdapter;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLClassLoader;
@@ -34,7 +35,7 @@ public class HytaleLibraryManager extends LibraryManager {
      * @param plugin the plugin to manage
      */
     public HytaleLibraryManager(@NotNull JavaPlugin plugin) {
-        this(plugin, "lib");
+        this(plugin, ".." + File.separator + "libby");
     }
 
     /**
@@ -79,7 +80,7 @@ public class HytaleLibraryManager extends LibraryManager {
 
     @Override
     protected InputStream getResourceAsStream(@NotNull String path) {
-        //TODO - maybe there is a better way?
+        //TODO - resource leak
         try {
             JarFile jar = new JarFile(plugin.getFile().toFile());
             ZipEntry entry = jar.getEntry(path);
